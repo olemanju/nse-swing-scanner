@@ -1047,6 +1047,23 @@ def to_json_records(df: pd.DataFrame) -> list:
             # 1.3.0 exit-side warnings
             "swing_high_63d": _json_safe(r.get("tech_swing_high_63d")),
             "atr_expansion_ratio": _json_safe(r.get("tech_atr_expansion_ratio")),
+            # 1.9.0 chart-pattern tags (tag-only: never a gate or score input).
+            # pattern_tags: [] = evaluated, nothing found; null = not evaluated.
+            "pattern_tags": (
+                _json_safe(r.get("tech_pattern_tags"))
+                if isinstance(r.get("tech_pattern_tags"), list)
+                else None
+            ),
+            "pattern_vcp": (
+                _json_safe(r.get("tech_pattern_vcp"))
+                if isinstance(r.get("tech_pattern_vcp"), dict)
+                else None
+            ),
+            "pattern_bull_flag": (
+                _json_safe(r.get("tech_pattern_bull_flag"))
+                if isinstance(r.get("tech_pattern_bull_flag"), dict)
+                else None
+            ),
             "surveillance_is_restricted": bool(r.get("surveillance_is_restricted", False)),
             "surveillance_restriction_type": r.get("surveillance_restriction_type"),
             "surveillance_source_status": r.get("surveillance_source_status"),

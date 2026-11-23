@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.9.0 — Chart-pattern tags (VCP, bull flag)
+
+### Added
+
+- `backend/patterns.py`: rule-based **VCP** and **bull flag** detection on the
+  daily history `compute_technicals` already fetches, so no new requests. Rules
+  follow the swing-alpha project's published description; the code is an
+  independent implementation (that repository has no licence).
+- JSON contract: `pattern_tags` (`[]` = evaluated, nothing found; `null` = not
+  evaluated), `pattern_vcp`, `pattern_bull_flag` on every row. `pattern_tags`
+  is also stamped into snapshots for the outcome tracker.
+- Dashboard: pattern chips on cards and table rows (`forming` / `at pivot` /
+  `breakout`), a **Patterns** filter over the whole screened universe, a
+  "Chart patterns" drawer section, and the fields in the CSV export.
+- Tests: 25 backend (detectors, rejection reasons, contract, snapshot,
+  technicals integration), 6 frontend; the offline smoke now asserts the
+  pattern fields survive `to_json_records`.
+
+### Not changed
+
+- **Tag-only.** No gate, no score input, `SCORE_VERSION` unchanged. The gates
+  select 15-40% pullbacks; these patterns form near highs, so most tags will
+  sit on FAIL rows. That is intended: it is a second lens on the same
+  universe, measured before it is weighted.
+- Technicals cache key bumped `v4` → `v5` so cached payloads pick up the new
+  fields on the next scan instead of publishing nulls for a full TTL.
+
 ## 1.8.2 — The scheduler fires
 
 A one-shot probe function was deployed and left to run at a real scheduled

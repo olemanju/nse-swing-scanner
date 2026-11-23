@@ -2,7 +2,7 @@
 
 > Operational reference for any agent (Kilo, Cursor, human) working on this
 > codebase. README.md is user-facing; this file is the technical contract.
-> Last updated: 2026-11-09 (1.8.2 scoring + scheduler pass, verified live).
+> Last updated: 2026-11-23 (1.9.0 chart-pattern tags; 1.8.2 scoring + scheduler pass verified live 2026-11-09).
 
 ## Project Overview
 
@@ -107,6 +107,7 @@ GitHub Actions cron ──► scanner.py ──► frontend/public/data/*.json
 │   ├── surveillance.py    # NSE/BSE T-group/suspension/GSM fetcher
 │   ├── bhavcopy.py        # Multi-provider delivery data (NSE/yfinance/BSE)
 │   ├── technicals.py      # RSI, ATR, EMAs, 200EMA proximity
+│   ├── patterns.py        # 1.9.0 VCP + bull-flag tags (tag-only, never gate/score)
 │   ├── fscore.py          # Piotroski F-Score + 5Y avg P/E (yfinance)
 │   ├── source_status.py   # Standardised {status, source, data} envelope
 │   ├── settings.py        # All tunable thresholds + TTLs
@@ -128,7 +129,7 @@ GitHub Actions cron ──► scanner.py ──► frontend/public/data/*.json
 │   │   ├── generate_digest.py         # 1.4.3: public weekly accuracy digest (markdown)
 │   │   └── send_digest.py             # C3: Telegram digest (soft-fail)
 │   ├── cache/             # On-disk JSON cache (gitignored, restored/saved via actions/cache)
-│   └── tests/             # 341 tests, all run in ~2s
+│   └── tests/             # 366 tests, all run in ~2s
 ├── frontend/
 │   ├── public/data/
 │   │   ├── latest_scan.json    # Committed by scan.yml after each run
@@ -143,6 +144,7 @@ GitHub Actions cron ──► scanner.py ──► frontend/public/data/*.json
 │   │   ├── styles.css           # Single CSS file, ~1900 lines
 │   │   ├── utils/
 │   │   │   ├── scanPlan.js      # Entry-state, regime, RS penalty, earnings chip (pure)
+│   │   │   ├── patterns.js      # VCP / bull-flag chips + drawer rows (pure)
 │   │   │   ├── picks.js        # Top-band shortlist tiering, reasons, band mirror (pure)
 │   │   │   ├── sizing.js       # Position sizing + risk math (card & drawer)
 │   │   │   ├── trades.js       # Trade-journal status/aggregate math (pure)
@@ -180,7 +182,7 @@ GitHub Actions cron ──► scanner.py ──► frontend/public/data/*.json
 │   └── analytics.md          # North-star metric definition + analytics decision log
 ├── netlify.toml                  # Build config + cache-control headers
 ├── README.md                     # User-facing docs
-├── CHANGELOG.md                  # Versioned release notes (latest: 1.8.2)
+├── CHANGELOG.md                  # Versioned release notes (latest: 1.9.0)
 ├── PROJECT_REVIEW.md             # full review that drove the 1.7.0 pass
 └── AGENTS.md                     # ← you are here
 ```
@@ -193,7 +195,7 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
-pytest -q                                            # 341 tests, ~2s
+pytest -q                                            # 366 tests, ~2s
 python scanner.py --top-n 500 --workers 8 --sleep 0.3 \
     --lenient-external-gates \
     --output ../frontend/public/data/latest_scan.json
@@ -419,6 +421,26 @@ raw numbers with new cuts silently relabels history: after the scale change,
 re-bucketing one cohort pushed 54 of 100 names into `<53` for no reason other
 than a ~7-point offset. `per_name[].score` is the re-scored value;
 `per_name[].stored_score` is what the scan actually published.
+
+## Chart-pattern tags (1.9.0, tag-only)
+
+`patterns.detect_patterns(hist)` runs inside `_compute_technicals_impl` on the
+same 2y history (cache key bumped to `tech:...:v5`). It publishes
+`pattern_tags`, `pattern_vcp`, `pattern_bull_flag` for **every** row and never
+raises: a detector bug sets `pattern_tags: null` instead of costing the row.
+
+- **Not a gate, not a score input.** `SCORE_VERSION` is unchanged. Do not wire
+  these into `WEIGHTS` until the tracker has measured them; the same
+  promotion checklist applies as for any new component.
+- **Expect tags mostly on FAIL rows.** VCP / flags form near highs; the gates
+  select names 15-40% off their high with RSI 25-40.
+- `pattern_tags` is in `SNAPSHOT_STOCK_FIELDS` so cohorts can be split by tag
+  later. Detail objects stay in `latest_scan.json` only.
+- Thresholds: `PATTERN_*` in `settings.py`. Frontend copy must not imply an
+  edge (`PATTERN_CAVEAT` in `frontend/src/utils/patterns.js`).
+- Rules come from the swing-alpha project's published README; that repo has no
+  licence, so the code is an independent implementation. Do not paste code
+  from it.
 
 ## Data Sources & Fallback Chains
 
@@ -791,7 +813,7 @@ Three places, kept in sync by `backend/scripts/check_cron_consistency.py`:
 
 ```bash
 cd backend
-.venv/bin/python -m pytest -q          # 341 tests in ~2s
+.venv/bin/python -m pytest -q          # 366 tests in ~2s
 ```
 
 Coverage (manual map):
@@ -821,7 +843,7 @@ list.
 ## See also
 
 - `README.md` — user-facing docs (setup, methodology, operational risks)
-- `CHANGELOG.md` — versioned release notes (current: 1.8.2)
+- `CHANGELOG.md` — versioned release notes (current: 1.9.0)
 - `netlify.toml` — build config + cache-control headers
 - `backend/scripts/check_cron_consistency.py` — CI guard (cron windows)
 - `backend/scripts/check_workflow_scripts.py` — CI guard (script import path)

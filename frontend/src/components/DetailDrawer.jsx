@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreRing from "./ScoreRing.jsx";
 import DonutHoldings from "./DonutHoldings.jsx";
 import SubscoreBars from "./SubscoreBars.jsx";
+import { PATTERN_CAVEAT, PATTERN_LABELS, patternRows, stockPatternTags } from "../utils/patterns.js";
 import { readSizing, saveSizing, computePositionSize } from "../utils/sizing.js";
 import {
   evaluatePlanState,
@@ -524,6 +525,30 @@ export default function DetailDrawer({ stock, onClose, watchlist, scanDate, perf
                 R:R asymmetry (T1 capped by nearby resistance, or stop too
                 tight given expanding volatility) so you can adjust size or
                 skip the trade.
+              </p>
+            </section>
+          )}
+
+          {stockPatternTags(stock).length > 0 && (
+            <section className="drawer-section chart-patterns">
+              <h4>Chart patterns</h4>
+              {stockPatternTags(stock).map((tag) => (
+                <div key={tag} className="chart-pattern">
+                  <h5>{PATTERN_LABELS[tag]}</h5>
+                  <ul className="kv">
+                    {patternRows(stock, tag).map(([label, value]) => (
+                      <li key={label}>
+                        <span>{label}</span>
+                        <b>{value}</b>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="sizer-note">
+                {PATTERN_CAVEAT} Rule-based VCP and bull-flag detection on daily
+                bars; the outcome tracker records these tags so their forward
+                returns can be measured before anyone weights them.
               </p>
             </section>
           )}

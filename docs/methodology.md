@@ -114,6 +114,35 @@ plus 2.5×ATR(14)). Risk-reward ratios are computed against the stop.
 These are **heuristic**, not backtested. They replace the original
 Fibonacci 61.8% targets which were oversized for a 15–30 day window.
 
+## Chart-pattern tags (tag-only)
+
+Since 1.9.0 every screened row carries `pattern_tags` (`["vcp"]`,
+`["bull_flag"]`, both, `[]` when nothing matched, or `null` when technicals
+were unavailable) plus `pattern_vcp` / `pattern_bull_flag` detail objects.
+Rules (thresholds in `settings.py`, code in `backend/patterns.py`):
+
+- **VCP**, last 60 sessions: swing highs within ±5 sessions; a trailing run of
+  at least 3 pullbacks with strictly shrinking depth; last-leg volume below
+  0.8× the first leg's; pivot (last swing high) within 8% of the 60-session
+  high; final pullback under 8%.
+- **Bull flag**: a 5–15 session pole with at least 8% close-to-close gain whose
+  last bar is the pole's high; 4–20 flag sessions after it that stay under the
+  pole high, on lower average volume than the pole, with a regression slope of
+  at most +0.3% per session, at most one close below the 20 EMA, and a
+  retracement of at most 50% of the pole.
+- State relative to the pivot: `breakout` (close above), `at_pivot` (within
+  0.5% below), otherwise `forming`.
+
+They are **not** gates and **not** score inputs, and `SCORE_VERSION` is
+unchanged. They describe a momentum setup near highs, the opposite of the
+gates' 15–40% pullback, so expect most tags on rows that fail the gates.
+`pattern_tags` is stamped into snapshots so the outcome tracker can measure
+the tags before any decision to weight them.
+
+The rules follow the published description in the swing-alpha project's README
+(github.com/Aman123axr/swing-alpha). That repository has no licence, so this is
+an independent implementation, not a copy of its code.
+
 ## Source-status policy
 
 Every external fetch returns a `source_status`:

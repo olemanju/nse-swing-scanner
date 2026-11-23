@@ -125,3 +125,25 @@ ENTRY_ZONE_ATR_FRACTION = 0.5
 STOP_LOSS_ATR_MULT = 1.0
 TARGET_1_ATR_MULT = 1.5
 TARGET_2_ATR_MULT = 2.5
+
+# Chart-pattern tags (1.9.0) — TAG-ONLY. These never feed a hard gate, the soft
+# score or SCORE_VERSION; they are published per row so the outcome tracker can
+# measure them before anyone weights them. Rules follow the published spec of
+# the swing-alpha project (README "Pattern Detection"); see patterns.py.
+PATTERN_SWING_WINDOW = 5                    # swing point = extreme within +/-5 bars
+PATTERN_PIVOT_PROXIMITY_PCT = 0.5           # "at pivot" = close within 0.5% below it
+# VCP (volatility contraction pattern)
+PATTERN_VCP_LOOKBACK = 60                   # sessions examined
+PATTERN_VCP_MIN_CONTRACTIONS = 3            # trailing run of shrinking pullbacks
+PATTERN_VCP_VOL_DRYUP_MAX = 0.8             # final leg avg vol < first leg avg vol x 0.8
+PATTERN_VCP_PIVOT_MAX_BELOW_HIGH_PCT = 8.0  # pivot within 8% of the 60-session high
+PATTERN_VCP_FINAL_DEPTH_MAX_PCT = 8.0       # final pullback shallower than 8%
+# Bull flag
+PATTERN_FLAG_POLE_MIN_BARS = 5
+PATTERN_FLAG_POLE_MAX_BARS = 15
+PATTERN_FLAG_POLE_MIN_GAIN_PCT = 8.0        # close-to-close gain over the pole
+PATTERN_FLAG_MIN_BARS = 4                   # bars after the pole top, incl. today
+PATTERN_FLAG_MAX_BARS = 20
+PATTERN_FLAG_MAX_CLOSES_BELOW_EMA20 = 1
+PATTERN_FLAG_MAX_SLOPE_PCT_PER_BAR = 0.3    # regression slope of flag closes
+PATTERN_FLAG_MAX_RETRACE_PCT = 50.0         # of the pole height

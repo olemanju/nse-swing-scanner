@@ -1343,6 +1343,17 @@ body {
   border-top: 1px solid rgba(251, 191, 36, 0.4);
   padding-top: var(--sp-3);
 }
+/* 1.9.0 chart-pattern tags (tag-only) */
+.chart-pattern + .chart-pattern {
+  margin-top: var(--sp-3);
+}
+.chart-pattern h5 {
+  margin: 0 0 var(--sp-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-bright);
+}
 .exit-warning-row {
   flex-direction: column;
   align-items: flex-start;

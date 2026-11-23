@@ -105,6 +105,10 @@ only server-side endpoint is an owner-only, bearer-token scan trigger.
   intervals. Weak bands are demoted and labelled, never hidden — including the
   top band: as of the latest run **no band has an established edge**, and the
   dashboard says so rather than claiming one.
+- **Chart-pattern tags.** Rule-based VCP and bull-flag detection across the
+  whole universe, with a Patterns filter and per-stock measurements. Tag-only:
+  never a gate or a score input, and recorded in snapshots so the tracker can
+  measure them.
 - **Scan history.** Dated snapshots and a "what changed since last scan" diff.
 - **Personal watchlist and local trade journal.** Everything stays in
   `localStorage` — no account, no server, nothing uploaded.
