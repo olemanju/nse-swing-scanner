@@ -29,6 +29,7 @@ from settings import (
     YF_CACHE_TTL_SECONDS,
 )
 from cache import cached_call
+from patterns import detect_patterns
 from yf_retry import call_with_retry, is_rate_limit_error, should_cache_yf_payload
 
 
@@ -218,6 +219,10 @@ def _compute_technicals_impl(yf_ticker: str, period: str = "2y") -> dict:
         if not np.isnan(atr_20d_ago) and atr_20d_ago > 0:
             atr_expansion_ratio = round(float(current_atr) / float(atr_20d_ago), 2)
 
+    # 1.9.0: chart-pattern tags (VCP / bull flag). Tag-only — never a gate or
+    # a score input. detect_patterns() does not raise.
+    pattern_fields = detect_patterns(hist)
+
     return {
         "yf_ticker": yf_ticker,
         "current_price": round(current_price, 2),
@@ -249,6 +254,7 @@ def _compute_technicals_impl(yf_ticker: str, period: str = "2y") -> dict:
         "vol_ratio_3v20": vol_ratio_3v20,
         "swing_high_63d": round(swing_high_63d, 2) if swing_high_63d is not None else None,
         "atr_expansion_ratio": atr_expansion_ratio,
+        **pattern_fields,
         "error": None,
     }
 
@@ -260,7 +266,8 @@ def compute_technicals(yf_ticker: str, period: str = "2y") -> dict:
     disk for YF_CACHE_TTL_SECONDS (12 h) keyed on (ticker, period, schema).
     Bumping the schema suffix invalidates old cached payloads whose shape would
     otherwise be silently merged with the new field set (causing missing/null
-    fields in the JSON contract for one full TTL).
+    fields in the JSON contract for one full TTL). v5 (1.9.0) added the
+    pattern_* fields.
 
     `period="2y"`: the drawdown gate needs a full 252-session window of
     intraday highs. A `1y` fetch returns ~248-252 rows, so demanding 252 from it
@@ -269,7 +276,7 @@ def compute_technicals(yf_ticker: str, period: str = "2y") -> dict:
     history are still flagged `fifty_two_wk_high_partial`.
     """
     return cached_call(
-        f"tech:{yf_ticker}:{period}:v4",
+        f"tech:{yf_ticker}:{period}:v5",
         YF_CACHE_TTL_SECONDS,
         _compute_technicals_impl,
         yf_ticker,

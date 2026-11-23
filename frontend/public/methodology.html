@@ -787,6 +787,28 @@
         visible in the performance view once N is sufficient.
       </p>
 
+      <h3>Chart-pattern tags (VCP &amp; bull flag)</h3>
+      <p>
+        Every screened name, not only gate passes, is checked on daily bars
+        for two rule-based patterns. A matching name gets a chip
+        (<em>forming</em>, <em>at pivot</em> or <em>breakout</em>), the drawer
+        lists the measurements, and a <strong>Patterns</strong> filter shows
+        all tagged names.
+      </p>
+      <ul>
+        <li><strong>VCP</strong> (last 60 sessions): swing highs within &plusmn;5 sessions; at least three successive pullbacks, each shallower than the one before; volume in the last pullback below 0.8&times; the first; the pivot (last swing high) within 8% of the 60-session high; and a final pullback under 8%.</li>
+        <li><strong>Bull flag</strong>: a pole of 5&ndash;15 sessions gaining at least 8% close to close, followed by 4&ndash;20 sessions that stay under the pole high on lower average volume, with a regression slope of at most +0.3% per session, at most one close below the 20 EMA, and a retracement of no more than half the pole.</li>
+      </ul>
+      <p class="muted">
+        These are tags only. They are not hard gates, they do not change the
+        score, and no edge has been measured. The gates look for pullbacks
+        15&ndash;40% off the 52-week high, while these patterns form near
+        highs, so most tagged names fail the gates by design. Snapshots record
+        the tags so the outcome tracker can measure them. Rules follow the
+        published description of the swing-alpha project; the implementation
+        is independent.
+      </p>
+
       <h3>Watchlist &amp; "Since last scan"</h3>
       <p>
         Stars on cards/rows/drawer persist a watchlist to localStorage.

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import ScoreRing from "./ScoreRing.jsx";
 import { confirmationChip, earningsChip, evaluatePlanState, scoreBandChip } from "../utils/scanPlan.js";
+import { patternChips } from "../utils/patterns.js";
 
 const fmtINR = (v) =>
   v == null ? "—" : `₹${v.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -61,6 +62,7 @@ function StockCard({ stock, expanded, onToggle, watchlist, performance, priorPla
   const conf = confirmationChip(stock);
   const ea = earningsChip(stock);
   const band = scoreBandChip(swing_score, performance);
+  const patternTags = patternChips(stock);
   const watched = watchlist?.has?.(symbol) ?? false;
 
   return (
@@ -155,6 +157,17 @@ function StockCard({ stock, expanded, onToggle, watchlist, performance, priorPla
           {band.label}
         </div>
       )}
+
+      {patternTags.map((pc) => (
+        <div
+          key={pc.key}
+          className={`entry-state entry-${pc.tone}`}
+          title={pc.tooltip}
+        >
+          <span className="entry-state-dot" aria-hidden="true" />
+          {pc.label}
+        </div>
+      ))}
 
       <div className="stock-card-plan">
         {target_1 != null && (

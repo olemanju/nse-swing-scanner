@@ -57,6 +57,8 @@ SNAPSHOT_STOCK_FIELDS = (
     "score_version",
     "market_index_pct_from_ema200",
     "market_correction_factor",
+    # 1.9.0: tag-only chart patterns, kept so the tracker can measure them.
+    "pattern_tags",
 )
 
 

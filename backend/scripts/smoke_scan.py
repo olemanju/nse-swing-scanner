@@ -73,6 +73,7 @@ REQUIRED_ROW_FIELDS = (
     "sub_scores",
     "score_version",
     "confirmation_state",
+    "pattern_tags",
 )
 
 
@@ -121,6 +122,10 @@ def _priced_row(rdict: dict) -> dict:
             "tech_vol_ratio_3v20": 0.9,
             "tech_swing_high_63d": 120.0,
             "tech_atr_expansion_ratio": 1.05,
+            "tech_pattern_tags": ["vcp"],
+            "tech_pattern_vcp": {"contractions": 3, "pivot": 104.0, "state": "forming"},
+            "tech_pattern_bull_flag": None,
+            "tech_pattern_error": None,
             "tech_error": None,
             "fscore_f_score": 8,
             "fscore_f_score_components_available": 9,
@@ -237,6 +242,10 @@ def run(out_path: str) -> int:
 
     for row in payload["stocks"]:
         missing = [f for f in REQUIRED_ROW_FIELDS if f not in row]
+        # 1.9.0: the stubbed row carries a VCP tag; null here means
+        # to_json_records dropped the pattern fields.
+        if row.get("pattern_tags") != ["vcp"] or not isinstance(row.get("pattern_vcp"), dict):
+            failures.append(f"{row.get('symbol')}: pattern fields lost ({row.get('pattern_tags')!r})")
         if missing:
             failures.append(f"{row.get('symbol')}: missing contract field(s) {missing}")
 

@@ -16,6 +16,7 @@ import usePriorPlans from "./utils/usePriorPlans.js";
 import useWatchlist from "./utils/useWatchlist.js";
 import useTradeJournal from "./utils/useTradeJournal.js";
 import { confirmationChip, earningsChip, evaluatePlanState, regimeFromMarketIndex, relativeStrengthFactor } from "./utils/scanPlan.js";
+import { hasPattern, patternChips } from "./utils/patterns.js";
 import { splitShortlist, regimeKeyOf, TOP_PICK_MIN_SCORE } from "./utils/picks.js";
 import {
   formatScanTimestamp,
@@ -120,7 +121,7 @@ const THEME_LS_KEY = "nseSwingTheme";
 const VIEW_LS_KEY = "nseSwingViewMode";
 const FILTER_LS_KEY = "nseSwingFilter";
 const SCAN_STATUS_URL = "/data/scan_status.json";
-const VALID_FILTERS = ["picks", "passed", "watchlist", "all"];
+const VALID_FILTERS = ["picks", "passed", "watchlist", "patterns", "all"];
 const DEFAULT_FILTER = "picks";
 
 const COLUMNS = [
@@ -224,6 +225,8 @@ function exportCsv(rows, filename = "nse_swing_scan.csv") {
     // 1.3.0 accuracy plumbing
     "confirmation_state", "rsi_delta_3d", "close_up_1d", "vol_ratio_3v20",
     "swing_high_63d", "atr_expansion_ratio",
+    // 1.9.0 chart-pattern tags (tag-only)
+    "pattern_tags", "pattern_vcp", "pattern_bull_flag",
   ];
   const esc = (v) => {
     if (v === null || v === undefined) return "";
@@ -274,7 +277,7 @@ export default function App() {
     } catch {
       return DEFAULT_FILTER;
     }
-  }); // picks | passed | watchlist | all
+  }); // picks | passed | watchlist | patterns | all
   const [sortKey, setSortKey] = useState("swing_score");
   const [sortDir, setSortDir] = useState("desc");
   const [expanded, setExpanded] = useState(null);
@@ -449,6 +452,11 @@ export default function App() {
   // Computed from the full scan, independent of the search box, so the
   // header counts never lie about what the scan actually found.
   const shortlist = useMemo(() => splitShortlist(data?.stocks), [data]);
+  // 1.9.0: VCP / bull-flag tags across the whole screened universe (tag-only).
+  const patternCount = useMemo(
+    () => (data?.stocks || []).filter(hasPattern).length,
+    [data]
+  );
 
   // No name cleared the evidenced band, but some did pass every gate: show
   // them, labelled, rather than an empty screen.
@@ -467,6 +475,7 @@ export default function App() {
     }
     if (filter === "passed") r = r.filter((s) => s.gate_pass);
     if (filter === "watchlist") r = r.filter((s) => watchlist.has(s.symbol));
+    if (filter === "patterns") r = r.filter(hasPattern);
     if (search.trim()) {
       const q = search.trim().toUpperCase();
       r = r.filter(
@@ -706,6 +715,7 @@ export default function App() {
               { value: "picks", label: `Top picks · ${shortlist.counts.topPicks}` },
               { value: "passed", label: `All passes · ${shortlist.counts.passed}` },
               { value: "watchlist", label: `Watchlist · ${watchlist.symbols.length}` },
+              { value: "patterns", label: `Patterns · ${patternCount}` },
               { value: "all", label: `Screened · ${shortlist.counts.universe}` },
             ]}
           />
@@ -921,7 +931,11 @@ export default function App() {
         ) : (
           <div className="empty-state">
             <h2>No stocks match</h2>
-            <p>Try clearing the filter or search term.</p>
+            <p>
+              {filter === "patterns" && !search.trim()
+                ? "No VCP or bull flag in this scan. These tags are rule-based and rare by design; most scans will have only a handful."
+                : "Try clearing the filter or search term."}
+            </p>
           </div>
         )
       ) : filter === "picks" ? (
@@ -1132,6 +1146,16 @@ export default function App() {
                         </span>
                       );
                     })()}
+                    {patternChips(s).map((pc) => (
+                      <span
+                        key={pc.key}
+                        className={`entry-state sm entry-${pc.tone}`}
+                        title={pc.tooltip}
+                      >
+                        <span className="entry-state-dot" aria-hidden="true" />
+                        {pc.label}
+                      </span>
+                    ))}
                   </td>
                   <td>
                     <span className={`gate-badge ${s.gate_pass ? "pass" : "fail"}`}>
